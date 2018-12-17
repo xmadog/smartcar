@@ -1,0 +1,37 @@
+{
+  "controller": {
+    "motors": [{
+      "in1": 2,
+      "in2": 3,
+      "pwm": 4
+    },{
+      "in1": 17,
+      "in2": 27,
+      "pwm": 22
+    },{
+      "in1": 10,
+      "in2": 9,
+      "pwm": 11
+    },{
+      "in1": 14,
+      "in2": 15,
+      "pwm": 18
+    }]
+  },
+  "logger": {
+    "level": "debug",
+    "development": true,
+    "disableCaller": false,
+    "outputPaths": ["stdout","./logs/smartcar.log"],
+    "errorOutputPaths": ["stderr","./logs/error.log"],
+    "encoding": "console",
+    "encoderConfig": {
+      "levelKey":       "L",
+      "nameKey":        "N",
+      "messageKey":     "M",
+      "callerKey":      "C",
+      "timeKey":        "T",
+      "stacktraceKey":  "S"
+    }
+  }
+}
