@@ -1,8 +1,11 @@
 package sensor
 
-import "context"
+import (
+	"context"
+	"smartcar/model"
+)
 
 type Sensor interface {
-	Start(chan interface{},context.Context)
+	Start(chan model.DataInfo, context.Context)
 	Stop(context.Context)
 }
