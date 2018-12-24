@@ -14,6 +14,7 @@ func main() {
 	config.NewConfig(&conf)
 	log := logger.NewLogger(conf.Logger)
 	log.Info("smartcar -> start")
+	logger.SetLogger(context.Background(), log)
 
 	carController := controller.NewController(&conf)
 	carController.Start(context.Background())
