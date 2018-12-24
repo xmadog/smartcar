@@ -20,10 +20,10 @@ func main() {
 	defer carController.Stop()
 
 	for {
-		carController.Channel <- model.DataInfo{
+		carController.Send(&model.DataInfo{
 			Type: model.Motor,
 			Data: "forward",
-		}
+		})
 		time.Sleep(500 * time.Millisecond)
 	}
 

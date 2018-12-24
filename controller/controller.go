@@ -16,10 +16,11 @@ import (
 type Controller struct {
 	Sensors map[string]sensor.Sensor
 	Motor   *motor.Motor
+	Config  *config.Config
 	context context.Context
 	cancel  context.CancelFunc
 	isStart bool
-	Channel chan model.DataInfo
+	channel chan model.DataInfo
 }
 
 func NewController(conf *config.Config) *Controller {
@@ -50,24 +51,7 @@ func NewController(conf *config.Config) *Controller {
 	}
 
 	controller := Controller{
-		Motor: motor.NewMotor(
-			motor.NewMotorPins(
-				conf.Controller.Motors[0].In1,
-				conf.Controller.Motors[0].In2,
-				conf.Controller.Motors[0].Pwm),
-			motor.NewMotorPins(
-				conf.Controller.Motors[1].In1,
-				conf.Controller.Motors[1].In2,
-				conf.Controller.Motors[1].Pwm),
-			motor.NewMotorPins(
-				conf.Controller.Motors[2].In1,
-				conf.Controller.Motors[2].In2,
-				conf.Controller.Motors[2].Pwm),
-			motor.NewMotorPins(
-				conf.Controller.Motors[3].In1,
-				conf.Controller.Motors[3].In2,
-				conf.Controller.Motors[3].Pwm),
-		),
+		Config:  conf,
 		Sensors: sensorMap,
 		context: nil,
 		isStart: false,
@@ -78,11 +62,31 @@ func NewController(conf *config.Config) *Controller {
 func (this *Controller) Start(ctx context.Context) {
 	if !this.isStart {
 		this.context, this.cancel = context.WithCancel(ctx)
-		this.Channel = make(chan model.DataInfo)
+		this.channel = make(chan model.DataInfo)
+
+		rpio.Open()
+		this.Motor = motor.NewMotor(
+			motor.NewMotorPins(
+				this.Config.Controller.Motors[0].In1,
+				this.Config.Controller.Motors[0].In2,
+				this.Config.Controller.Motors[0].Pwm),
+			motor.NewMotorPins(
+				this.Config.Controller.Motors[1].In1,
+				this.Config.Controller.Motors[1].In2,
+				this.Config.Controller.Motors[1].Pwm),
+			motor.NewMotorPins(
+				this.Config.Controller.Motors[2].In1,
+				this.Config.Controller.Motors[2].In2,
+				this.Config.Controller.Motors[2].Pwm),
+			motor.NewMotorPins(
+				this.Config.Controller.Motors[3].In1,
+				this.Config.Controller.Motors[3].In2,
+				this.Config.Controller.Motors[3].Pwm),
+		)
 
 		if this.Sensors != nil {
 			for _, item := range this.Sensors {
-				item.Start(this.Channel, this.context)
+				item.Start(this.channel, this.context)
 			}
 		}
 
@@ -90,11 +94,11 @@ func (this *Controller) Start(ctx context.Context) {
 			logger.GetLogger(ctx).Info("controller -> start")
 			select {
 			case <-ctx.Done():
-				close(this.Channel)
-				this.Channel = nil
+				close(this.channel)
+				this.channel = nil
 				this.context = nil
 				logger.GetLogger(ctx).Info("controller -> end")
-			case operation := <-this.Channel:
+			case operation := <-this.channel:
 				switch operation.Type {
 				case model.Motor:
 					this.setMotor(&operation)
@@ -104,7 +108,6 @@ func (this *Controller) Start(ctx context.Context) {
 
 			}
 		}(this.context)
-		rpio.Open()
 		this.isStart = true
 		logger.GetLogger(this.context).Info("controller.Start -> called")
 	}
@@ -116,6 +119,12 @@ func (this *Controller) Stop() {
 		rpio.Close()
 		this.isStart = false
 		logger.GetLogger(this.context).Info("controller.End -> called")
+	}
+}
+
+func (this *Controller) Send(operaiton *model.DataInfo) {
+	if this.isStart && operaiton != nil {
+		this.channel <- *operaiton
 	}
 }
 
