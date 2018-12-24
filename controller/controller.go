@@ -19,7 +19,7 @@ type Controller struct {
 	context context.Context
 	cancel  context.CancelFunc
 	isStart bool
-	channel chan model.DataInfo
+	Channel chan model.DataInfo
 }
 
 func NewController(conf *config.Config) *Controller {
@@ -78,11 +78,11 @@ func NewController(conf *config.Config) *Controller {
 func (this *Controller) Start(ctx context.Context) {
 	if !this.isStart {
 		this.context, this.cancel = context.WithCancel(ctx)
-		this.channel = make(chan model.DataInfo)
+		this.Channel = make(chan model.DataInfo)
 
 		if this.Sensors != nil {
 			for _, item := range this.Sensors {
-				item.Start(this.channel, this.context)
+				item.Start(this.Channel, this.context)
 			}
 		}
 
@@ -90,11 +90,11 @@ func (this *Controller) Start(ctx context.Context) {
 			logger.GetLogger(ctx).Info("controller -> start")
 			select {
 			case <-ctx.Done():
-				close(this.channel)
-				this.channel = nil
+				close(this.Channel)
+				this.Channel = nil
 				this.context = nil
 				logger.GetLogger(ctx).Info("controller -> end")
-			case operation := <-this.channel:
+			case operation := <-this.Channel:
 				switch operation.Type {
 				case model.Motor:
 					this.setMotor(&operation)

@@ -5,6 +5,8 @@ import (
 	"smartcar/config"
 	"smartcar/controller"
 	"smartcar/logger"
+	"smartcar/model"
+	"time"
 )
 
 func main() {
@@ -16,6 +18,14 @@ func main() {
 	carController := controller.NewController(&conf)
 	carController.Start(context.Background())
 	defer carController.Stop()
+
+	for {
+		carController.Channel <- model.DataInfo{
+			Type: model.Motor,
+			Data: "forward",
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 
 	log.Info("smartcar -> end")
 }
