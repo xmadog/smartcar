@@ -13,11 +13,11 @@ func main() {
 	var conf config.Config
 	config.NewConfig(&conf)
 	log := logger.NewLogger(conf.Logger)
+	ctx := logger.SetLogger(context.Background(), log)
 	log.Info("smartcar -> start")
-	logger.SetLogger(context.Background(), log)
 
 	carController := controller.NewController(&conf)
-	carController.Start(context.Background())
+	carController.Start(ctx)
 	defer carController.Stop()
 
 	for {
